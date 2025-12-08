@@ -1,0 +1,80 @@
+{
+  "name": "@lilsnake/subtitle-editor",
+  "version": "1.0.0",
+  "description": "A powerful React subtitle editor component with multi-language support, waveform visualization, and real-time editing",
+  "type": "module",
+  "main": "./dist/index.cjs",
+  "module": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "publishConfig": {
+    "access": "public"
+  },
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js",
+      "require": "./dist/index.cjs"
+    },
+    "./style.css": "./dist/style.css"
+  },
+  "files": [
+    "dist",
+    "README.md"
+  ],
+  "scripts": {
+    "dev": "vite",
+    "build": "tsc && vite build",
+    "preview": "vite preview",
+    "prepublishOnly": "npm run build"
+  },
+  "keywords": [
+    "react",
+    "subtitle",
+    "editor",
+    "video",
+    "subtitles",
+    "waveform",
+    "srt",
+    "vtt",
+    "ass",
+    "translation",
+    "multi-language"
+  ],
+  "author": "SnakeLil",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/SnakeLil/subtitle-editor.git"
+  },
+  "peerDependencies": {
+    "react": "^18.0.0 || ^19.0.0",
+    "react-dom": "^18.0.0 || ^19.0.0"
+  },
+  "dependencies": {
+    "@ffmpeg/ffmpeg": "^0.12.15",
+    "@ffmpeg/util": "^0.12.2",
+    "@forlagshuset/simple-fs": "^0.5.2",
+    "@mui/icons-material": "^7.3.6",
+    "@mui/material": "^7.3.6",
+    "duration-time-conversion": "^1.0.6",
+    "jszip": "^3.10.1",
+    "lodash": "^4.17.21",
+    "react-textarea-autosize": "^8.5.9",
+    "react-virtualized": "^9.22.6",
+    "wfplayer": "^2.2.7"
+  },
+  "devDependencies": {
+    "@types/lodash": "^4.17.21",
+    "@types/node": "^24.10.0",
+    "@types/react": "^19.2.2",
+    "@types/react-dom": "^19.2.2",
+    "@types/react-textarea-autosize": "^4.3.6",
+    "@vitejs/plugin-react": "^5.1.0",
+    "react": "^19.2.0",
+    "react-dom": "^19.2.0",
+    "tailwindcss": "^4.1.17",
+    "typescript": "~5.9.3",
+    "vite": "^7.2.2",
+    "vite-plugin-dts": "^4.5.0"
+  }
+}
