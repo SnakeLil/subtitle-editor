@@ -1,30 +1,45 @@
-import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
-import isEqual from 'lodash/isEqual';
-import { Loading } from './components/Loading';
-import { useToast } from './components/ToastContext';
-import Sub, { type SubPayload } from './lib/Sub';
-import DT from 'duration-time-conversion';
-import type WFPlayer from 'wfplayer';
-import PlayerPanel from './PlayerPanel';
-import SubtitleList from './SubtitleList';
-import ToolPanel from './ToolPanel';
-import FooterPanel from './FooterPanel';
-import { LOCAL_SUBTITLE_KEY, SAMPLE_SUBTITLE_URL, SAMPLE_VIDEO_URL, MAX_LOCAL_SUBTITLE_FILES } from './constants';
-import type { SubtitleEditorProps, SubtitleEditorShared, MultiLangStoredData } from './types';
-import { file2sub } from './lib/readSub';
-import { getExt, getFileNameFromPath } from './utils';
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import isEqual from "lodash/isEqual";
+import { Loading } from "./components/Loading";
+import { ToastProvider, useToast } from "./components/ToastContext";
+import Sub, { type SubPayload } from "./lib/Sub";
+import DT from "duration-time-conversion";
+import type WFPlayer from "wfplayer";
+import PlayerPanel from "./PlayerPanel";
+import SubtitleList from "./SubtitleList";
+import ToolPanel from "./ToolPanel";
+import FooterPanel from "./FooterPanel";
+import {
+  LOCAL_SUBTITLE_KEY,
+  SAMPLE_SUBTITLE_URL,
+  SAMPLE_VIDEO_URL,
+  MAX_LOCAL_SUBTITLE_FILES,
+} from "./constants";
+import type {
+  SubtitleEditorProps,
+  SubtitleEditorShared,
+  MultiLangStoredData,
+} from "./types";
+import { file2sub } from "./lib/readSub";
+import { getExt, getFileNameFromPath } from "./utils";
 
-type StoredSubPayload = Pick<SubPayload, 'start' | 'end' | 'text' | 'text2'>;
-type SubtitleStorageRecord = Record<string, StoredSubPayload[] | MultiLangStoredData>;
+type StoredSubPayload = Pick<SubPayload, "start" | "end" | "text" | "text2">;
+type SubtitleStorageRecord = Record<
+  string,
+  StoredSubPayload[] | MultiLangStoredData
+>;
 interface SubtitleStorageState {
   items: SubtitleStorageRecord;
   order: string[];
 }
 
-const DEFAULT_STORAGE_KEY = 'default';
-const DEFAULT_LANG = 'en';
+const DEFAULT_STORAGE_KEY = "default";
+const DEFAULT_LANG = "en";
 
-const createEmptyStorage = (): SubtitleStorageState => ({ items: {}, order: [] });
+const createEmptyStorage = (): SubtitleStorageState => ({
+  items: {},
+  order: [],
+});
 
 const toStoredSubtitle = (subs: Sub[]): StoredSubPayload[] =>
   subs.map((item) => ({
@@ -44,10 +59,16 @@ const parseSubtitleRecord = (raw: string | null): SubtitleStorageState => {
         order: [DEFAULT_STORAGE_KEY],
       };
     }
-    if (parsed && typeof parsed === 'object') {
-      if ('items' in parsed && 'order' in parsed && Array.isArray((parsed as any).order)) {
-        const items = { ...((parsed as { items: SubtitleStorageRecord }).items) };
-        const order = ((parsed as { order: string[] }).order || []).filter((key) => key in items);
+    if (parsed && typeof parsed === "object") {
+      if (
+        "items" in parsed &&
+        "order" in parsed &&
+        Array.isArray((parsed as any).order)
+      ) {
+        const items = { ...(parsed as { items: SubtitleStorageRecord }).items };
+        const order = ((parsed as { order: string[] }).order || []).filter(
+          (key) => key in items
+        );
         return { items, order };
       }
       const items = parsed as SubtitleStorageRecord;
@@ -71,18 +92,24 @@ export default function SubtitleEditor({
   const subtitleHistory = useRef<Sub[][]>([]);
   const [player, setPlayer] = useState<HTMLVideoElement | null>(null);
   const [waveform, setWaveform] = useState<WFPlayer | null>(null);
-  const [loading, setLoading] = useState('');
+  const [loading, setLoading] = useState("");
   const [processing, setProcessing] = useState(0);
-  const [language, setLanguage] = useState(initialLanguage || 'en');
+  const [language, setLanguage] = useState(initialLanguage || "en");
 
   // Multi-language states
   const [currentLang, setCurrentLang] = useState<string>(DEFAULT_LANG);
   const [originalLang, setOriginalLang] = useState<string>(DEFAULT_LANG);
   const [translations, setTranslations] = useState<Record<string, Sub[]>>({});
-  const translatedLangs = useMemo(() => Object.keys(translations), [translations]);
+  const translatedLangs = useMemo(
+    () => Object.keys(translations),
+    [translations]
+  );
 
   // subtitle 从 translations[currentLang] 获取
-  const subtitle = useMemo(() => translations[currentLang] || [], [translations, currentLang]);
+  const subtitle = useMemo(
+    () => translations[currentLang] || [],
+    [translations, currentLang]
+  );
 
   const [playing, setPlaying] = useState(false);
   const [currentTime, setCurrentTime] = useState(0);
@@ -102,7 +129,7 @@ export default function SubtitleEditor({
   }, [resolvedVideoUrl]);
 
   useEffect(() => {
-    setLanguage(initialLanguage || 'en');
+    setLanguage(initialLanguage || "en");
   }, [initialLanguage]);
 
   const newSub = useCallback((item: SubPayload) => new Sub(item), []);
@@ -115,33 +142,42 @@ export default function SubtitleEditor({
       }
       return newSub(sub as SubPayload);
     },
-    [newSub],
+    [newSub]
   );
 
-  const copySubs = useCallback(() => subtitle.map((item) => item.clone), [subtitle]);
+  const copySubs = useCallback(
+    () => subtitle.map((item) => item.clone),
+    [subtitle]
+  );
 
   // Multi-language methods
-  const switchLanguage = useCallback((lang: string) => {
-    if (lang in translations) {
-      setCurrentLang(lang);
-    }
-  }, [translations]);
+  const switchLanguage = useCallback(
+    (lang: string) => {
+      if (lang in translations) {
+        setCurrentLang(lang);
+      }
+    },
+    [translations]
+  );
 
-  const removeLanguage = useCallback((lang: string) => {
-    if (lang === originalLang) {
-      // Cannot remove original language
-      return;
-    }
-    setTranslations((prev) => {
-      const updated = { ...prev };
-      delete updated[lang];
-      return updated;
-    });
-    // If current language is removed, switch to original language
-    if (lang === currentLang) {
-      setCurrentLang(originalLang);
-    }
-  }, [originalLang, currentLang]);
+  const removeLanguage = useCallback(
+    (lang: string) => {
+      if (lang === originalLang) {
+        // Cannot remove original language
+        return;
+      }
+      setTranslations((prev) => {
+        const updated = { ...prev };
+        delete updated[lang];
+        return updated;
+      });
+      // If current language is removed, switch to original language
+      if (lang === currentLang) {
+        setCurrentLang(originalLang);
+      }
+    },
+    [originalLang, currentLang]
+  );
 
   const addTranslation = useCallback((lang: string, subs: Sub[]) => {
     setTranslations((prev) => ({
@@ -150,58 +186,61 @@ export default function SubtitleEditor({
     }));
   }, []);
 
-  const persistSubtitle = useCallback(
-    () => {
-      if (!shouldPersistLocal) return;
-      if (typeof window === 'undefined') return;
-      const raw = window.localStorage.getItem(LOCAL_SUBTITLE_KEY);
-      const state = parseSubtitleRecord(raw);
-      const items = { ...state.items };
-      let order = state.order.filter((key) => key in items);
+  const persistSubtitle = useCallback(() => {
+    if (!shouldPersistLocal) return;
+    if (typeof window === "undefined") return;
+    const raw = window.localStorage.getItem(LOCAL_SUBTITLE_KEY);
+    const state = parseSubtitleRecord(raw);
+    const items = { ...state.items };
+    let order = state.order.filter((key) => key in items);
 
-      // Convert all languages to stored format
-      const translationsToStore: Record<string, StoredSubPayload[]> = {};
-      for (const [lang, subs] of Object.entries(translations)) {
-        translationsToStore[lang] = toStoredSubtitle(subs);
+    // Convert all languages to stored format
+    const translationsToStore: Record<string, StoredSubPayload[]> = {};
+    for (const [lang, subs] of Object.entries(translations)) {
+      translationsToStore[lang] = toStoredSubtitle(subs);
+    }
+
+    const multiLangData: MultiLangStoredData = {
+      currentLang,
+      originalLang,
+      translations: translationsToStore,
+    };
+
+    if (Object.keys(translationsToStore).length > 0) {
+      items[subtitleStorageKey] = multiLangData;
+      order = order.filter((key) => key !== subtitleStorageKey);
+      order.push(subtitleStorageKey);
+    } else {
+      delete items[subtitleStorageKey];
+      order = order.filter((key) => key !== subtitleStorageKey);
+    }
+
+    while (order.length > MAX_LOCAL_SUBTITLE_FILES) {
+      const removed = order.shift();
+      if (removed) {
+        delete items[removed];
       }
+    }
 
-      const multiLangData: MultiLangStoredData = {
-        currentLang,
-        originalLang,
-        translations: translationsToStore,
-      };
-
-      if (Object.keys(translationsToStore).length > 0) {
-        items[subtitleStorageKey] = multiLangData;
-        order = order.filter((key) => key !== subtitleStorageKey);
-        order.push(subtitleStorageKey);
-      } else {
-        delete items[subtitleStorageKey];
-        order = order.filter((key) => key !== subtitleStorageKey);
-      }
-
-      while (order.length > MAX_LOCAL_SUBTITLE_FILES) {
-        const removed = order.shift();
-        if (removed) {
-          delete items[removed];
-        }
-      }
-
-      if (order.length) {
-        window.localStorage.setItem(
-          LOCAL_SUBTITLE_KEY,
-          JSON.stringify({ items, order }),
-        );
-      } else {
-        window.localStorage.removeItem(LOCAL_SUBTITLE_KEY);
-      }
-    },
-    [shouldPersistLocal, subtitleStorageKey, translations, currentLang, originalLang],
-  );
+    if (order.length) {
+      window.localStorage.setItem(
+        LOCAL_SUBTITLE_KEY,
+        JSON.stringify({ items, order })
+      );
+    } else {
+      window.localStorage.removeItem(LOCAL_SUBTITLE_KEY);
+    }
+  }, [
+    shouldPersistLocal,
+    subtitleStorageKey,
+    translations,
+    currentLang,
+    originalLang,
+  ]);
 
   const getStoredSubtitle = useCallback((): MultiLangStoredData | null => {
     if (!shouldPersistLocal) return null;
-    if (typeof window === 'undefined') return null;
+    if (typeof window === "undefined") return null;
     const raw = window.localStorage.getItem(LOCAL_SUBTITLE_KEY);
     const state = parseSubtitleRecord(raw);
     const items = { ...state.items };
@@ -209,11 +248,16 @@ export default function SubtitleEditor({
     let stored = items[subtitleStorageKey];
 
     // Handle default storage key migration
-    if ((!stored || (Array.isArray(stored) && !stored.length)) && items[DEFAULT_STORAGE_KEY]) {
+    if (
+      (!stored || (Array.isArray(stored) && !stored.length)) &&
+      items[DEFAULT_STORAGE_KEY]
+    ) {
       stored = items[DEFAULT_STORAGE_KEY];
       delete items[DEFAULT_STORAGE_KEY];
       items[subtitleStorageKey] = stored;
-      order = order.filter((key) => key !== subtitleStorageKey && key !== DEFAULT_STORAGE_KEY);
+      order = order.filter(
+        (key) => key !== subtitleStorageKey && key !== DEFAULT_STORAGE_KEY
+      );
       order.push(subtitleStorageKey);
       while (order.length > MAX_LOCAL_SUBTITLE_FILES) {
         const removed = order.shift();
@@ -221,7 +265,10 @@ export default function SubtitleEditor({
           delete items[removed];
         }
       }
-      window.localStorage.setItem(LOCAL_SUBTITLE_KEY, JSON.stringify({ items, order }));
+      window.localStorage.setItem(
+        LOCAL_SUBTITLE_KEY,
+        JSON.stringify({ items, order })
+      );
     }
 
     if (!stored) return null;
@@ -260,7 +307,7 @@ export default function SubtitleEditor({
         }));
       }
     },
-    [translations, currentLang, copySubs],
+    [translations, currentLang, copySubs]
   );
 
   const undoSubs = useCallback(() => {
@@ -280,21 +327,31 @@ export default function SubtitleEditor({
       const index = hasSub(sub);
       if (index < 0) return false;
       const previous = subtitle[index - 1];
-      return Boolean((previous && sub.startTime < previous.endTime) || !sub.check || sub.duration < 0.2);
+      return Boolean(
+        (previous && sub.startTime < previous.endTime) ||
+          !sub.check ||
+          sub.duration < 0.2
+      );
     },
-    [subtitle, hasSub],
+    [subtitle, hasSub]
   );
 
   const notify = useCallback(
-    ({ message, level }: { message: string; level: 'success' | 'error' | 'info' | 'warning' }) => {
+    ({
+      message,
+      level,
+    }: {
+      message: string;
+      level: "success" | "error" | "info" | "warning";
+    }) => {
       switch (level) {
-        case 'success':
+        case "success":
           success(message);
           break;
-        case 'error':
+        case "error":
           error(message);
           break;
-        case 'warning':
+        case "warning":
           warning(message);
           break;
         default:
@@ -302,7 +359,7 @@ export default function SubtitleEditor({
           break;
       }
     },
-    [success, error, info, warning],
+    [success, error, info, warning]
   );
 
   const removeSub = useCallback(
@@ -313,17 +370,18 @@ export default function SubtitleEditor({
       subs.splice(index, 1);
       setSubtitle(subs);
     },
-    [hasSub, copySubs, setSubtitle],
+    [hasSub, copySubs, setSubtitle]
   );
 
   const addSub = useCallback(
     (index: number, sub: SubPayload | Sub) => {
       const subs = copySubs();
-      const nextSub = sub instanceof Sub ? sub.clone : newSub(sub as SubPayload);
+      const nextSub =
+        sub instanceof Sub ? sub.clone : newSub(sub as SubPayload);
       subs.splice(index, 0, nextSub);
       setSubtitle(subs);
     },
-    [copySubs, setSubtitle, newSub],
+    [copySubs, setSubtitle, newSub]
   );
 
   const updateSub = useCallback(
@@ -337,7 +395,7 @@ export default function SubtitleEditor({
         setSubtitle(subs);
       }
     },
-    [hasSub, copySubs, setSubtitle, newSub],
+    [hasSub, copySubs, setSubtitle, newSub]
   );
 
   const mergeSub = useCallback(
@@ -355,7 +413,7 @@ export default function SubtitleEditor({
       subs.splice(index + 1, 1);
       setSubtitle(subs);
     },
-    [hasSub, copySubs, setSubtitle, newSub],
+    [hasSub, copySubs, setSubtitle, newSub]
   );
 
   const splitSub = useCallback(
@@ -366,7 +424,9 @@ export default function SubtitleEditor({
       const text1 = sub.text.slice(0, start).trim();
       const text2 = sub.text.slice(start).trim();
       if (!text1 || !text2) return;
-      const splitDuration = Number((sub.duration * (start / sub.text.length)).toFixed(3));
+      const splitDuration = Number(
+        (sub.duration * (start / sub.text.length)).toFixed(3)
+      );
       if (splitDuration < 0.2 || sub.duration - splitDuration < 0.2) return;
       subs.splice(index, 1);
       const middleTime = DT.d2t(sub.startTime + splitDuration);
@@ -377,7 +437,7 @@ export default function SubtitleEditor({
           start: sub.start,
           end: middleTime,
           text: text1,
-        }),
+        })
       );
       subs.splice(
         index + 1,
@@ -386,27 +446,31 @@ export default function SubtitleEditor({
           start: middleTime,
           end: sub.end,
           text: text2,
-        }),
+        })
       );
       setSubtitle(subs);
     },
-    [hasSub, copySubs, setSubtitle, newSub],
+    [hasSub, copySubs, setSubtitle, newSub]
   );
 
   const loadSubtitleFromSource = useCallback(async (url: string) => {
     const response = await fetch(url);
     if (!response.ok) {
-      throw new Error('Failed to load subtitle');
+      throw new Error("Failed to load subtitle");
     }
-    const fileName = getFileNameFromPath(url) || 'subtitle';
-    const ext = getExt(fileName) || 'srt';
-    if (ext === 'json') {
+    const fileName = getFileNameFromPath(url) || "subtitle";
+    const ext = getExt(fileName) || "srt";
+    if (ext === "json") {
       const payload = (await response.json()) as SubPayload[];
       return payload.map((item) => new Sub(item));
     }
     const blob = await response.blob();
-    const normalizedName = fileName.includes('.') ? fileName : `${fileName}.${ext}`;
-    const file = new File([blob], normalizedName, { type: blob.type || 'text/plain' });
+    const normalizedName = fileName.includes(".")
+      ? fileName
+      : `${fileName}.${ext}`;
+    const file = new File([blob], normalizedName, {
+      type: blob.type || "text/plain",
+    });
     return file2sub(file);
   }, []);
 
@@ -433,12 +497,14 @@ export default function SubtitleEditor({
           break;
       }
     };
-    window.addEventListener('keydown', onKeyDown);
-    return () => window.removeEventListener('keydown', onKeyDown);
+    window.addEventListener("keydown", onKeyDown);
+    return () => window.removeEventListener("keydown", onKeyDown);
   }, [player, playing, undoSubs]);
 
   useEffect(() => {
-    const nextIndex = subtitle.findIndex((item) => item.startTime <= currentTime && item.endTime > currentTime);
+    const nextIndex = subtitle.findIndex(
+      (item) => item.startTime <= currentTime && item.endTime > currentTime
+    );
     setCurrentIndex(nextIndex);
   }, [currentTime, subtitle]);
 
@@ -465,7 +531,7 @@ export default function SubtitleEditor({
 
       // Check if we have multi-language URLs
       if (subtitleUrls && Object.keys(subtitleUrls).length > 0) {
-        setLoading('Loading subtitle...');
+        setLoading("Loading subtitle...");
         try {
           const loadedTranslations: Record<string, Sub[]> = {};
           const languageKeys = Object.keys(subtitleUrls);
@@ -478,7 +544,10 @@ export default function SubtitleEditor({
                 loadedTranslations[lang] = subs;
               }
             } catch (error) {
-              console.error(`Failed to load subtitle for language: ${lang}`, error);
+              console.error(
+                `Failed to load subtitle for language: ${lang}`,
+                error
+              );
               // Continue loading other languages even if one fails
             }
           }
@@ -487,32 +556,33 @@ export default function SubtitleEditor({
             subtitleHistory.current.length = 0;
 
             // Set original language: prefer 'en', otherwise use first available
-            const originalLanguage = 'en' in loadedTranslations ? 'en' : languageKeys[0];
+            const originalLanguage =
+              "en" in loadedTranslations ? "en" : languageKeys[0];
 
             setTranslations(loadedTranslations);
             setOriginalLang(originalLanguage);
             setCurrentLang(originalLanguage);
           } else if (!cancelled) {
-            throw new Error('No subtitles loaded');
+            throw new Error("No subtitles loaded");
           }
         } catch (error) {
           if (!cancelled) {
-            notify({ message: 'Failed to load subtitle', level: 'error' });
+            notify({ message: "Failed to load subtitle", level: "error" });
           }
         } finally {
           if (!cancelled) {
-            setLoading('');
+            setLoading("");
           }
         }
         return;
       }
 
       // Fallback to single subtitle URL (legacy support)
-      setLoading('Loading subtitle...');
+      setLoading("Loading subtitle...");
       try {
         const remoteSubs = await loadSubtitleFromSource(resolvedSubtitleUrl);
         if (!remoteSubs.length) {
-          throw new Error('empty subtitle');
+          throw new Error("empty subtitle");
         }
         if (!cancelled) {
           subtitleHistory.current.length = 0;
@@ -525,10 +595,12 @@ export default function SubtitleEditor({
         }
       } catch (error) {
         if (!cancelled) {
-          notify({ message: 'Failed to load subtitle', level: 'error' });
+          notify({ message: "Failed to load subtitle", level: "error" });
         }
         try {
-          const fallbackSubs = await loadSubtitleFromSource(SAMPLE_SUBTITLE_URL);
+          const fallbackSubs = await loadSubtitleFromSource(
+            SAMPLE_SUBTITLE_URL
+          );
           if (!cancelled && fallbackSubs.length) {
             subtitleHistory.current.length = 0;
             setOriginalLang(DEFAULT_LANG);
@@ -543,7 +615,7 @@ export default function SubtitleEditor({
         }
       } finally {
         if (!cancelled) {
-          setLoading('');
+          setLoading("");
         }
       }
     };
@@ -553,7 +625,13 @@ export default function SubtitleEditor({
     return () => {
       cancelled = true;
     };
-  }, [getStoredSubtitle, loadSubtitleFromSource, resolvedSubtitleUrl, subtitleUrls, notify]);
+  }, [
+    getStoredSubtitle,
+    loadSubtitleFromSource,
+    resolvedSubtitleUrl,
+    subtitleUrls,
+    notify,
+  ]);
 
   // Auto persist when translations change
   useEffect(() => {
@@ -606,33 +684,43 @@ export default function SubtitleEditor({
   };
 
   return (
-    <div className={`flex fixed z-[100] top-0 left-0 w-screen h-screen flex-col gap-4 rounded-xl border border-white/5 bg-[#0B0D13] p-4 text-white ${className || ''}`}>
-      <div className="flex flex-1 min-h-0 gap-4">
-        <div className="flex-1 min-w-0 rounded-xl border border-white/5 bg-black/30 p-4">
-          <PlayerPanel {...sharedProps} />
+    <ToastProvider>
+      <div
+        className={`flex fixed z-[100] top-0 left-0 w-screen h-screen flex-col gap-4 rounded-xl border border-white/5 bg-[#0B0D13] p-4 text-white ${
+          className || ""
+        }`}
+      >
+        <div className="flex flex-1 min-h-0 gap-4">
+          <div className="flex-1 min-w-0 rounded-xl border border-white/5 bg-black/30 p-4">
+            <PlayerPanel {...sharedProps} />
+          </div>
+          <div className="w-64 min-w-[16rem] rounded-xl border border-white/5 bg-black/30 p-3">
+            <SubtitleList {...sharedProps} />
+          </div>
+          <div className="w-72 min-w-[18rem] rounded-xl border border-white/5 bg-black/30 p-3">
+            <ToolPanel {...sharedProps} />
+          </div>
         </div>
-        <div className="w-64 min-w-[16rem] rounded-xl border border-white/5 bg-black/30 p-3">
-          <SubtitleList {...sharedProps} />
+        <div className="h-64 min-h-[16rem] rounded-xl border border-white/5 bg-black/40 p-3">
+          <FooterPanel {...sharedProps} />
         </div>
-        <div className="w-72 min-w-[18rem] rounded-xl border border-white/5 bg-black/30 p-3">
-          <ToolPanel {...sharedProps} />
-        </div>
-      </div>
-      <div className="h-64 min-h-[16rem] rounded-xl border border-white/5 bg-black/40 p-3">
-        <FooterPanel {...sharedProps} />
-      </div>
 
-      {loading ? <Loading variant="overlay" text={loading || 'Loading...'} /> : null}
-      {processing > 0 && processing < 100 ? (
-        <div className="fixed left-0 right-0 top-0 z-50 h-1 bg-black/60">
-          <div
-            className="h-full bg-gradient-to-r from-amber-400 to-yellow-200 transition-[width]"
-            style={{ width: `${processing}%` }}
-          />
-          <span className="absolute right-4 top-2 text-xs text-white">{processing.toFixed(2)}%</span>
-        </div>
-      ) : null}
-    </div>
+        {loading ? (
+          <Loading variant="overlay" text={loading || "Loading..."} />
+        ) : null}
+        {processing > 0 && processing < 100 ? (
+          <div className="fixed left-0 right-0 top-0 z-50 h-1 bg-black/60">
+            <div
+              className="h-full bg-gradient-to-r from-amber-400 to-yellow-200 transition-[width]"
+              style={{ width: `${processing}%` }}
+            />
+            <span className="absolute right-4 top-2 text-xs text-white">
+              {processing.toFixed(2)}%
+            </span>
+          </div>
+        ) : null}
+      </div>
+    </ToastProvider>
   );
 }
 
