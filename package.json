@@ -1,6 +1,6 @@
 {
   "name": "@lilsnake/subtitle-editor",
-  "version": "1.0.1",
+  "version": "1.0.2",
   "description": "A powerful React subtitle editor component with multi-language support, waveform visualization, and real-time editing",
   "type": "module",
   "main": "./dist/index.cjs",

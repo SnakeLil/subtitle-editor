@@ -81,7 +81,7 @@ const parseSubtitleRecord = (raw: string | null): SubtitleStorageState => {
   return createEmptyStorage();
 };
 
-export default function SubtitleEditor({
+function SubtitleEditorInner({
   initialLanguage,
   className,
   subtitleUrl,
@@ -684,42 +684,48 @@ export default function SubtitleEditor({
   };
 
   return (
-    <ToastProvider>
-      <div
-        className={`flex fixed z-[100] top-0 left-0 w-screen h-screen flex-col gap-4 rounded-xl border border-white/5 bg-[#0B0D13] p-4 text-white ${
-          className || ""
-        }`}
-      >
-        <div className="flex flex-1 min-h-0 gap-4">
-          <div className="flex-1 min-w-0 rounded-xl border border-white/5 bg-black/30 p-4">
-            <PlayerPanel {...sharedProps} />
-          </div>
-          <div className="w-64 min-w-[16rem] rounded-xl border border-white/5 bg-black/30 p-3">
-            <SubtitleList {...sharedProps} />
-          </div>
-          <div className="w-72 min-w-[18rem] rounded-xl border border-white/5 bg-black/30 p-3">
-            <ToolPanel {...sharedProps} />
-          </div>
+    <div
+      className={`flex fixed z-[100] top-0 left-0 w-screen h-screen flex-col gap-4 rounded-xl border border-white/5 bg-[#0B0D13] p-4 text-white ${
+        className || ""
+      }`}
+    >
+      <div className="flex flex-1 min-h-0 gap-4">
+        <div className="flex-1 min-w-0 rounded-xl border border-white/5 bg-black/30 p-4">
+          <PlayerPanel {...sharedProps} />
         </div>
-        <div className="h-64 min-h-[16rem] rounded-xl border border-white/5 bg-black/40 p-3">
-          <FooterPanel {...sharedProps} />
+        <div className="w-64 min-w-[16rem] rounded-xl border border-white/5 bg-black/30 p-3">
+          <SubtitleList {...sharedProps} />
         </div>
-
-        {loading ? (
-          <Loading variant="overlay" text={loading || "Loading..."} />
-        ) : null}
-        {processing > 0 && processing < 100 ? (
-          <div className="fixed left-0 right-0 top-0 z-50 h-1 bg-black/60">
-            <div
-              className="h-full bg-gradient-to-r from-amber-400 to-yellow-200 transition-[width]"
-              style={{ width: `${processing}%` }}
-            />
-            <span className="absolute right-4 top-2 text-xs text-white">
-              {processing.toFixed(2)}%
-            </span>
-          </div>
-        ) : null}
+        <div className="w-72 min-w-[18rem] rounded-xl border border-white/5 bg-black/30 p-3">
+          <ToolPanel {...sharedProps} />
+        </div>
       </div>
+      <div className="h-64 min-h-[16rem] rounded-xl border border-white/5 bg-black/40 p-3">
+        <FooterPanel {...sharedProps} />
+      </div>
+
+      {loading ? (
+        <Loading variant="overlay" text={loading || "Loading..."} />
+      ) : null}
+      {processing > 0 && processing < 100 ? (
+        <div className="fixed left-0 right-0 top-0 z-50 h-1 bg-black/60">
+          <div
+            className="h-full bg-gradient-to-r from-amber-400 to-yellow-200 transition-[width]"
+            style={{ width: `${processing}%` }}
+          />
+          <span className="absolute right-4 top-2 text-xs text-white">
+            {processing.toFixed(2)}%
+          </span>
+        </div>
+      ) : null}
+    </div>
+  );
+}
+
+export default function SubtitleEditor(props: SubtitleEditorProps) {
+  return (
+    <ToastProvider>
+      <SubtitleEditorInner {...props} />
     </ToastProvider>
   );
 }
