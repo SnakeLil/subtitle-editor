@@ -39,7 +39,7 @@ pnpm add @lilsnake/subtitle-editor
 
 ```tsx
 import { SubtitleEditor } from '@lilsnake/subtitle-editor';
-import '@lilsnake/subtitle-editor/style.css';
+
 
 function App() {
   return (
@@ -56,7 +56,7 @@ function App() {
 
 ```tsx
 import { SubtitleEditor } from '@lilsnake/subtitle-editor';
-import '@lilsnake/subtitle-editor/style.css';
+
 
 function App() {
   return (
