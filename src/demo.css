@@ -1,0 +1,27 @@
+/* Demo page styles */
+.demo-app {
+  width: 100%;
+  height: 100vh;
+}
+
+/* React Virtualized Table styles for SubtitleList */
+.subtitle-list-table {
+  outline: none !important;
+}
+
+.subtitle-list-table .ReactVirtualized__Grid {
+  outline: none !important;
+}
+
+.subtitle-list-table .ReactVirtualized__Table__headerRow {
+  background: transparent;
+}
+
+.subtitle-list-table .subtitle-row {
+  outline: none !important;
+}
+
+/* Ensure proper scrolling */
+.ReactVirtualized__Grid__innerScrollContainer {
+  overflow: visible !important;
+}

@@ -1,6 +1,5 @@
-import { useCallback, useEffect, useMemo, useState } from 'react';
-import { Table } from 'react-virtualized';
-import debounce from 'lodash/debounce';
+import { useMemo } from 'react';
+import { Table, AutoSizer } from 'react-virtualized';
 import unescape from 'lodash/unescape';
 import type Sub from './lib/Sub';
 import type { SubtitleEditorShared } from './types';
@@ -17,18 +16,6 @@ export default function SubtitleList({
   originalLang,
   language,
 }: SubtitleEditorShared) {
-  const [height, setHeight] = useState(300);
-
-  const resize = useCallback(() => {
-    setHeight(Math.max(200, document.body.clientHeight - 220));
-  }, []);
-
-  useEffect(() => {
-    resize();
-    const debounceResize = debounce(resize, 300);
-    window.addEventListener('resize', debounceResize);
-    return () => window.removeEventListener('resize', debounceResize);
-  }, [resize]);
 
   const normalizedLanguage = language.toLowerCase().startsWith("zh") ? "zh" : "en";
   const languageOptions = useMemo(
@@ -44,9 +31,9 @@ export default function SubtitleList({
   const isOriginal = currentLang === originalLang;
 
   return (
-    <div className="h-full w-full overflow-hidden rounded-xl shadow-inner">
+    <div className="flex h-full w-full flex-col overflow-hidden rounded-xl shadow-inner">
       {/* Language Header */}
-      <div className="flex items-center justify-between border-b border-white/10 px-3 py-2 mb-2">
+      <div className="flex items-center justify-between border-b border-white/10 px-3 py-2">
         <div className="text-xs font-medium text-white">
           {currentLanguageName}
           {isOriginal && (
@@ -60,59 +47,64 @@ export default function SubtitleList({
         </div>
       </div>
 
-      <Table
-        headerHeight={10}
-        width={256}
-        height={height}
-        rowHeight={60}
-        className=''
-        containerStyle={{
-          // marginRight: '10px'
-        }}
-        scrollToIndex={currentIndex}
-        rowCount={subtitle.length}
-        rowGetter={({ index }) => subtitle[index]}
-        rowRenderer={(props) => {
-          const sub = props.rowData as Sub;
-          const isActive = currentIndex === props.index;
-          const isIllegal = checkSub(sub);
-          return (
-            <div
-              key={props.key}
-              className="   text-white"
-              style={props.style}
-              onClick={() => {
-                if (player) {
-                  player.pause();
-                  if (player.duration >= sub.startTime) {
-                    player.currentTime = sub.startTime + 0.001;
-                  }
-                }
+      <div className="flex-1 overflow-hidden">
+        <AutoSizer>
+          {({ width, height }) => (
+            <Table
+              headerHeight={0}
+              width={width}
+              height={height}
+              rowHeight={60}
+              className="subtitle-list-table"
+              headerClassName="header-row"
+              rowClassName="subtitle-row"
+              scrollToIndex={currentIndex}
+              rowCount={subtitle.length}
+              rowGetter={({ index }) => subtitle[index]}
+              rowRenderer={(props) => {
+                const sub = props.rowData as Sub;
+                const isActive = currentIndex === props.index;
+                const isIllegal = checkSub(sub);
+                return (
+                  <div
+                    key={props.key}
+                    className="text-white"
+                    style={props.style}
+                    onClick={() => {
+                      if (player) {
+                        player.pause();
+                        if (player.duration >= sub.startTime) {
+                          player.currentTime = sub.startTime + 0.001;
+                        }
+                      }
+                    }}
+                  >
+                    <div className="p-2">
+                      <textarea
+                        maxLength={400}
+                        spellCheck={false}
+                        className={`h-full w-full resize-none rounded-lg border px-3 py-2 text-xs leading-tight outline-none ${
+                          isActive
+                            ? 'border-sky-400 bg-sky-600/30'
+                            : isIllegal
+                              ? 'border-amber-400 bg-amber-600/40'
+                              : 'border-white/10 bg-white/5'
+                        }`}
+                        value={unescape(sub.text)}
+                        onChange={(event) =>
+                          updateSub(sub, {
+                            text: event.target.value,
+                          })
+                        }
+                      />
+                    </div>
+                  </div>
+                );
               }}
-            >
-              <div className=" p-2">
-                <textarea
-                  maxLength={400}
-                  spellCheck={false}
-                  className={`h-full w-[240px] !p-3 resize-none rounded-lg border px-3 py-2 text-xs leading-tight outline-none ${
-                    isActive
-                      ? 'border-sky-400 bg-sky-600/30'
-                      : isIllegal
-                        ? 'border-amber-400 bg-amber-600/40'
-                        : 'border-white/10 bg-white/5'
-                  }`}
-                  value={unescape(sub.text)}
-                  onChange={(event) =>
-                    updateSub(sub, {
-                      text: event.target.value,
-                    })
-                  }
-                />
-              </div>
-            </div>
-          );
-        }}
-      />
+            />
+          )}
+        </AutoSizer>
+      </div>
     </div>
   );
 }

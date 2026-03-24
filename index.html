@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Subtitle Editor - Demo</title>
+    <style>
+      * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="demo-container">
+      <header class="demo-header">
+        <h1>🎬 Subtitle Editor Demo</h1>
+        <p>Interactive demo for @lilsnake/subtitle-editor component</p>
+      </header>
+      
+      <div class="demo-info">
+        <h3>✨ Features Demo</h3>
+        <ul>
+          <li>Real-time subtitle editing</li>
+          <li>Waveform visualization</li>
+          <li>Multi-language support</li>
+          <li>Keyboard shortcuts (Space, Ctrl+Z)</li>
+          <li>Auto-save to localStorage</li>
+          <li>SRT, VTT, ASS format support</li>
+        </ul>
+      </div>
+      
+      <div class="demo-controls">
+        <button class="demo-btn active" data-video="sample">
+          🎥 Sample Video
+        </button>
+        <button class="demo-btn" data-video="bigbuckbunny">
+          🐰 Big Buck Bunny
+        </button>
+        <button class="demo-btn" data-video="sintel">
+          ⚔️ Sintel
+        </button>
+      </div>
+      
+      <div id="root" class="editor-wrapper"></div>
+    </div>
+    
+    <script type="module" src="/src/demo.tsx"></script>
+  </body>
+</html>

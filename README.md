@@ -18,20 +18,22 @@ A powerful React subtitle editor component with multi-language support, waveform
 ## Installation
 
 ```bash
-npm install @lilsnake/subtitle-editor
+npm install @lilsnake/subtitle-editor tailwindcss
 ```
 
 or
 
 ```bash
-yarn add @lilsnake/subtitle-editor
+yarn add @lilsnake/subtitle-editor tailwindcss
 ```
 
 or
 
 ```bash
-pnpm add @lilsnake/subtitle-editor
+pnpm add @lilsnake/subtitle-editor tailwindcss
 ```
+
+> **Note:** This component requires Tailwind CSS for styling. Make sure Tailwind CSS is installed and configured in your project.
 
 ## Usage
 
@@ -115,8 +117,26 @@ npm run build
 ## Requirements
 
 - React 18.0+ or 19.0+
+- Tailwind CSS 4.x (for styling)
 - react-i18next for internationalization
 - i18next for translations
+
+## Tailwind CSS Setup
+
+This component uses Tailwind CSS for styling. Make sure Tailwind CSS is properly configured in your project:
+
+1. **Install Tailwind CSS** (if not already installed):
+   ```bash
+   npm install tailwindcss
+   ```
+
+2. **Import Tailwind in your CSS entry point**:
+   ```css
+   @import "tailwindcss";
+   ```
+
+3. **Ensure your Tailwind config includes the component's CSS**:
+   The component's styles will work automatically if Tailwind is configured in your project.
 
 ## License
 
